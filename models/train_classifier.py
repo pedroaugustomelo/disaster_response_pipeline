@@ -32,8 +32,11 @@ def load_data(database_filepath):
               X : dataset of independent variable
               y : dataset of labels
      '''
+     #read sql table
      engine = create_engine('sqlite:///' + database_filepath)
-     df = pd.read_sql_table('Messages', engine)
+     df = pd.read_sql_table('disaster_response', engine)
+    
+     # Split features and targets
      X = df['message']
      y = df.iloc[:, 5:39]
      
@@ -51,6 +54,7 @@ def tokenize(text):
     stopWords = set(stopwords.words('english'))
 
     clean_tokens = []
+    #lemmatize each token and remove stopwords 
     for tok in tokens:
         clean_tok = lemmatizer.lemmatize(tok).lower().strip()
         if tok not in stopWords:
@@ -60,7 +64,13 @@ def tokenize(text):
 
 
 def build_model():
-      
+    ''' Builds pipeline to transform data and uses RandomForestClassifier as estimator.
+        Tests multiple hyperparameters to tune the model with GridSearch.
+        
+        Output:
+               cv: GridSearch for pipeline
+    '''
+    #Build pipeline with one Feature Union in order to merge togheter the numeric transformations. 
     pipeline = Pipeline([
         ('features', FeatureUnion([
 
@@ -69,34 +79,47 @@ def build_model():
                 ('tfidf', TfidfTransformer())
             ])),
 
-            ('text_len', TextLengthExtractor())
+            #('text_len', TextLengthExtractor())
         ])),
         ('clf', MultiOutputClassifier(RandomForestClassifier(n_jobs=-1)))
     ])
+    # parameters to tune the model 
     parameters = {
         
     'clf__estimator__n_estimators' : [50, 100],
     'clf__estimator__max_depth' : [10, 100]
      }
-
+    #Cross Validation on pipeline to find best parameters
     cv = GridSearchCV(pipeline, param_grid=parameters)
     
     return cv
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    
+    ''' Evaluates model comparing prediction with test set: prints precision, recall, f1-score and support
+        about each column.
+        Args: 
+             model: cv used to predict
+             X_test: feature test dataset
+             Y_test: target test dataset
+             category_names: columns to compare
+    '''     
+    # predict test set  
     y_pred = model.predict(X_test)
     # Turn prediction into DataFrame
-    y_pred = pd.DataFrame(y_pred,columns= y.columns)
-    # For each category column, print performance
-    for col in y.columns:
+    y_pred = pd.DataFrame(y_pred,columns= category_names)
+    # For each category column, print report
+    for col in category_names:
     print(f'Column Name:{col}\n')
     print(classification_report(Y_test[col],y_pred[col]))
 
 
 def save_model(model, model_filepath):
-    
-    pickle.dump(model, open(filename, 'wb'))
+    '''save model as a pickle file.
+    Args: 
+         model: trained model
+         model_filepath: path of model
+    '''
+    pickle.dump(model, open(model_filepath, 'wb'))
 
 def main():
     if len(sys.argv) == 3:
