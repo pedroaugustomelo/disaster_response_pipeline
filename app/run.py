@@ -4,33 +4,63 @@ import pandas as pd
 
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
 
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
-from sklearn.externals import joblib
+from plotly.graph_objs import Bar, Histogram
+import joblib
 from sqlalchemy import create_engine
+from sklearn.base import BaseEstimator, TransformerMixin
+
 
 
 app = Flask(__name__)
 
 def tokenize(text):
+    '''
+    Tokenize, lemmatize, normalize, and remove stop words from the input
+    Args: 
+        text: string of words
+    Output: 
+        clean tokens: cleaned words
+     
+    '''
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
+    stopWords = set(stopwords.words('english'))
 
     clean_tokens = []
     for tok in tokens:
         clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
+        if tok not in stopWords:
+            clean_tokens.append(clean_tok)
 
     return clean_tokens
 
+class TextLength(BaseEstimator, TransformerMixin):
+    '''
+    Overrides BaseEstimator and TransformerMixin to return text length
+
+    '''
+    def fit(self, X, y = None):
+        '''
+        Return self
+        '''
+        return self
+    def transform(self, X):
+        '''
+        Count the text length on each part of X
+        '''
+        x_length = pd.Series(X).str.len()
+        return pd.DataFrame(x_length)
+
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
+engine = create_engine('sqlite:///../data/disasterResponse.db')
 df = pd.read_sql_table('disaster_response', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -42,25 +72,24 @@ def index():
     # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    
+    categories_count = df.drop(columns = ['id', 'message', 'original', 'genre']).sum(axis = 1)
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
+                Histogram(
+                    x=categories_count,
                 )
             ],
 
             'layout': {
-                'title': 'Distribution of Message Genres',
+                'title': 'Histogram of Multiple Labels',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Frequency"
                 },
                 'xaxis': {
-                    'title': "Genre"
+                    'title': "number of Multiple Labels"
                 }
             }
         }

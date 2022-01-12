@@ -2,8 +2,8 @@ import sys
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
-import time
-import pickle
+import joblib
+
 
 import nltk
 from nltk import word_tokenize
@@ -18,9 +18,11 @@ from sklearn.feature_extraction.text import CountVectorizer,TfidfTransformer
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import precision_recall_fscore_support as score
 from sklearn.metrics import classification_report
+
 
 
 def load_data(database_filepath):
@@ -41,6 +43,25 @@ def load_data(database_filepath):
      y = df.iloc[:, 5:39]
      
      return X,y, y.columns
+
+class TextLength(BaseEstimator, TransformerMixin):
+    '''
+    Overrides BaseEstimator and TransformerMixin to return text length
+
+    '''
+    def fit(self, X, y = None):
+        '''
+        Return self
+        '''
+        return self
+    def transform(self, X):
+        '''
+        Count the text length on each part of X
+        '''
+        x_length = pd.Series(X).str.len()
+        return pd.DataFrame(x_length)
+    
+
 
 def tokenize(text):
     ''' tokenize and lemmatize text.
@@ -79,7 +100,7 @@ def build_model():
                 ('tfidf', TfidfTransformer())
             ])),
 
-            #('text_len', TextLengthExtractor())
+            ('text_len', TextLength())
         ])),
         ('clf', MultiOutputClassifier(RandomForestClassifier(n_jobs=-1)))
     ])
@@ -109,8 +130,8 @@ def evaluate_model(model, X_test, Y_test, category_names):
     y_pred = pd.DataFrame(y_pred,columns= category_names)
     # For each category column, print report
     for col in category_names:
-    print(f'Column Name:{col}\n')
-    print(classification_report(Y_test[col],y_pred[col]))
+        print(f'Column Name:{col}\n')
+        print(classification_report(Y_test[col],y_pred[col]))
 
 
 def save_model(model, model_filepath):
@@ -119,7 +140,7 @@ def save_model(model, model_filepath):
          model: trained model
          model_filepath: path of model
     '''
-    pickle.dump(model, open(model_filepath, 'wb'))
+    joblib.dump(model, model_filepath)
 
 def main():
     if len(sys.argv) == 3:
