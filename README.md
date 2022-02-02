@@ -35,6 +35,19 @@ Exports the final model as a pickle file
 3. Flask Web App
 In this part, we output the visualizations of the original data and classify the sentence provided by the client, across 36 categories.
 
+### Installations
+
+- Python 3.9
+- Pandas
+- NumPy
+- Sklearn
+- Nltk
+- SQLAlchemy
+- Joblib
+- Bootstrap
+- Flask
+- Plotly
+
 ### Instructions:
 1. Run the following commands in the project's root directory to set up your database and model.
 
@@ -47,3 +60,7 @@ In this part, we output the visualizations of the original data and classify the
     `python run.py`
 
 3. Go to http://0.0.0.0:3001/
+
+### Licensing, Authors, Acknowledgements
+
+This app was completed as part of the [Udacity Data Scientist Nanodegree](https://www.udacity.com/course/data-scientist-nanodegree--nd025).
