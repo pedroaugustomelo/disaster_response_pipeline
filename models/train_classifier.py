@@ -40,7 +40,7 @@ def load_data(database_filepath):
     
      # Split features and targets
      X = df['message']
-     y = df.iloc[:, 5:39]
+     y = df.drop(columns=['id','message','original','genre'])
      
      return X,y, y.columns
 
@@ -108,7 +108,7 @@ def build_model():
     parameters = {
         
     'clf__estimator__n_estimators' : [50, 100],
-    'clf__estimator__max_depth' : [10, 100]
+    'features__text_pipeline__tfidf__use_idf': (True, False)
      }
     #Cross Validation on pipeline to find best parameters
     cv = GridSearchCV(pipeline, param_grid=parameters)

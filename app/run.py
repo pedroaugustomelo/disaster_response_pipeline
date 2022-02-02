@@ -30,6 +30,7 @@ def tokenize(text):
     lemmatizer = WordNetLemmatizer()
     stopWords = set(stopwords.words('english'))
 
+    # Get clean tokens after lemmatization, normalization, stripping and stop words removal
     clean_tokens = []
     for tok in tokens:
         clean_tok = lemmatizer.lemmatize(tok).lower().strip()
@@ -72,24 +73,62 @@ def index():
     # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    categories_count = df.drop(columns = ['id', 'message', 'original', 'genre']).sum(axis = 1)
+
+    multiple_labels = df.drop(columns=['id','message','original','genre']).sum(axis=1)
+    positive_labels = df.drop(columns=['id','message','original','genre']).sum()
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
-                Histogram(
-                    x=categories_count,
+                Bar(
+                    x=genre_names,
+                    y=genre_counts
                 )
             ],
 
             'layout': {
-                'title': 'Histogram of Multiple Labels',
+                'title': 'Distribution of Message Genres',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Genre"
+                }
+            }
+        },
+        {
+            'data': [
+                Histogram(
+                    x=multiple_labels
+                )
+            ],
+
+            'layout': {
+                'title': 'Histogram of Multiple Lables Instances',
                 'yaxis': {
                     'title': "Frequency"
                 },
                 'xaxis': {
-                    'title': "number of Multiple Labels"
+                    'title': "# of Multiple Lables"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    x=positive_labels.index,
+                    y=positive_labels
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of positive lables',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Output Lables"
                 }
             }
         }
