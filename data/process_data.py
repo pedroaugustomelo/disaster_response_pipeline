@@ -45,6 +45,9 @@ def clean_data(df):
     for column in categories:
           # set each value to be the last character of the string
           categories[column] = categories[column].astype(str).str[-1:]
+        
+          #convert all categories to binary
+          categories[column] = categories[column].astype('str').replace('2', '1')
     
           # convert column from string to numeric
           categories[column] = categories[column].astype('int32')
@@ -70,7 +73,7 @@ def save_data(df, database_filename):
     # Create database engine
     engine = create_engine('sqlite:///'+database_filename)
     # Save df to database
-    df.to_sql('disaster_response', engine, index=False)
+    df.to_sql('disaster_response', engine, if_exists = 'replace', index=False)
 
 def main():
     if len(sys.argv) == 4:
