@@ -1,6 +1,6 @@
 # Disaster Response Pipeline Project
 ### Summary 
-In this project, we received data from Figure Eight in order to build an web app able to classify new entries.
+In this project, we received data from Figure Eight in order to build a web app able to classify new entries.
 
 The data set represents messages sent during disasters and its labels, separated in 36 categories. First, we cleaned the data and saved it in a SQLite Database. Then we used it to train a Machine Learning Pipeline, exporting the model to classify the input provided on the Flask Web App.
 
